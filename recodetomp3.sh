@@ -19,7 +19,7 @@ function jobidfromstring()
 
 function clearToSpawn
 {
-    local JOBCOUNT="$(jobs -r | grep -c .)"
+    local JOBCOUNT="$(jobs | wc -l)"
     if [ $JOBCOUNT -lt $MAXJOBS ] ; then
         echo 1;
         return 1;
@@ -70,6 +70,9 @@ fi
 done
 echo " done"
 
+JOBLIST=""
+
+
 echo "checking flac file conversions"
 # now, find all .flacs and convert them to .mp3
 # unless they have already been converted
@@ -96,8 +99,14 @@ echo "encoding $flac to $OF"
 flac -c -dF --silent "$flac" | lame $LAMEOPTS \
 --add-id3v2 --pad-id3v2 --ignore-tag-errors --tt "$TITLE" --tn "${TRACKNUMBER:-0}" --ta \
 "$ARTIST" --tl "$ALBUM" --ty "$DATE" --tg "${GENRE:-12}" \
-- "$OF"
+- "$OF" &
 fi
+
+while [ `clearToSpawn` -ne 1 ]; do
+    sleep 1
+done
+
+
 done
 
 echo "done"
